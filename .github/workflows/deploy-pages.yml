@@ -1,3 +1,4 @@
+# Deployment workflow for Dr. John Ughulu's website
 name: Deploy website to GitHub Pages
 
 on:

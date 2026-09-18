@@ -67,7 +67,10 @@ function resourceCard(item,provider){
   const data=escapeHtml(JSON.stringify({...item,provider,url:item.url||(provider==="Amazon"?AMAZON_URL:RESEARCHGATE_URL)}));
   const cover=provider==="Amazon"?`<div class="book-cover-wrap"><img class="book-cover" src="${escapeHtml(item.cover)}" alt="Cover of ${escapeHtml(item.title)}" loading="lazy"></div>`:"";
   const meta=`<div class="resource-meta"><span class="tag">${escapeHtml(item.category)}</span><span class="tag">${escapeHtml(item.subject)}</span>${item.year?`<span class="tag">${item.year}</span>`:""}</div>`;
-  if(provider==="Article")return `<article class="card resource-card article-card">${meta}<h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.excerpt||"Read this original article by Dr. John Ughulu.")}</p><a class="btn btn-dark" href="${href("articles")}?article=${encodeURIComponent(item.id)}">Read Article</a></article>`;
+  if(provider==="Article"){
+    const published=item.date?new Date(`${item.date}T12:00:00`).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}):"";
+    return `<article class="card resource-card article-card">${meta}${published?`<p class="article-date">Published ${escapeHtml(published)}</p>`:""}<h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.excerpt||"Read this original article by Dr. John Ughulu.")}</p><a class="btn btn-dark" href="${href("articles")}?article=${encodeURIComponent(item.id)}">Read Article</a></article>`;
+  }
   const description=provider==="Amazon"?"Available for purchase through Amazon. All proceeds support the work and mission of The Morale Booster Ministries.":"Peer-reviewed research and scholarly work. Continue to the ResearchGate profile to view availability.";
   return `<article class="card resource-card">${cover}${meta}<h3>${escapeHtml(item.title)}</h3><p>${description}</p><button class="btn btn-dark" data-resource="${data}">Continue to ${provider}</button></article>`;
 }
@@ -76,7 +79,7 @@ async function setupArticlesPage(){
   try{
     const response=await fetch(`${base}articles.json`);
     if(!response.ok)throw new Error("Articles could not be loaded");
-    const articles=await response.json();
+    const articles=(await response.json()).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
     const articleId=new URLSearchParams(window.location.search).get("article");
     if(articleId){
       const article=articles.find(item=>item.id===articleId);
@@ -97,7 +100,41 @@ function renderArticle(article){
   document.title=`${article.title} | Dr. John Ughulu`;
   const date=article.date?new Date(`${article.date}T12:00:00`).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}):"";
   const blocks=article.blocks.map(block=>block.type==="heading"?`<h2>${escapeHtml(block.text)}</h2>`:`<p>${escapeHtml(block.text)}</p>`).join("");
-  document.getElementById("main").innerHTML=`${hero("Original article",escapeHtml(article.title),`By Dr. John Ughulu${date?` · Published ${date}`:""}`)}<section class="section"><div class="container article-layout"><a class="back-link" href="${href("articles")}">← Back to Articles and Papers</a><div class="resource-meta"><span class="tag">${escapeHtml(article.category)}</span><span class="tag">${escapeHtml(article.subject)}</span>${article.year?`<span class="tag">${article.year}</span>`:""}</div><article class="article-content">${blocks}</article></div></section>`;
+  document.getElementById("main").innerHTML=`${hero("Original article",escapeHtml(article.title),`By Dr. John Ughulu${date?` · Published ${date}`:""}`)}<section class="section"><div class="container article-layout"><a class="back-link" href="${href("articles")}">← Back to Articles and Papers</a><div class="resource-meta"><span class="tag">${escapeHtml(article.category)}</span><span class="tag">${escapeHtml(article.subject)}</span>${article.year?`<span class="tag">${article.year}</span>`:""}</div><div class="article-actions"><button class="btn btn-dark" id="download-article-pdf" type="button">Download Article as PDF</button><span class="download-note">PDF format only</span></div><article class="article-content">${blocks}</article></div></section>`;
+  document.getElementById("download-article-pdf").addEventListener("click",()=>downloadArticlePdf(article));
+}
+
+function downloadArticlePdf(article){
+  const replacements={"’":"'","‘":"'","“":"\"","”":"\"","–":"-","—":"-","•":"*","…":"..."};
+  const clean=value=>String(value||"").normalize("NFKD").replace(/[^\x20-\x7E\n]/g,char=>replacements[char]||"");
+  const escapePdf=value=>clean(value).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");
+  const wrap=(text,maxChars)=>{const lines=[];clean(text).split(/\n+/).forEach(paragraph=>{const words=paragraph.trim().split(/\s+/).filter(Boolean);if(!words.length){lines.push("");return}let line="";words.forEach(word=>{if(word.length>maxChars){if(line){lines.push(line);line=""}for(let i=0;i<word.length;i+=maxChars)lines.push(word.slice(i,i+maxChars));return}const next=line?`${line} ${word}`:word;if(next.length>maxChars){lines.push(line);line=word}else line=next});if(line)lines.push(line)});return lines};
+  const pageWidth=612,pageHeight=792,margin=54,bottom=55;
+  const pages=[];let commands=[],y=pageHeight-margin;
+  const newPage=()=>{if(commands.length)pages.push(commands.join("\n"));commands=[];y=pageHeight-margin};
+  const addLine=(text,size=11,bold=false,indent=0,leading=size*1.45)=>{if(y-leading<bottom)newPage();commands.push(`BT /${bold?"F2":"F1"} ${size} Tf ${margin+indent} ${y} Td (${escapePdf(text)}) Tj ET`);y-=leading};
+  const addSpace=amount=>{if(y-amount<bottom)newPage();else y-=amount};
+  const addWrapped=(text,size=11,bold=false,indent=0,after=7)=>{const max=Math.max(20,Math.floor((pageWidth-(margin*2)-indent)/(size*.52)));wrap(text,max).forEach(line=>addLine(line,size,bold,indent));addSpace(after)};
+  addWrapped(article.title,20,true,0,10);
+  addWrapped(`Dr. John Ughulu${article.date?` | Published ${article.date}`:""}`,10,false,0,16);
+  (article.blocks||[]).forEach(block=>{if(block.type==="heading"){addSpace(7);addWrapped(block.text,14,true,0,7)}else addWrapped(block.text,11,false,0,8)});
+  if(commands.length)pages.push(commands.join("\n"));
+  const objects=[null];
+  const addObject=body=>{objects.push(body);return objects.length-1};
+  const fontRegular=addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+  const fontBold=addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+  const pagesObject=addObject("");
+  const pageObjects=[];
+  pages.forEach(content=>{const stream=addObject(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);pageObjects.push(addObject(`<< /Type /Page /Parent ${pagesObject} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontRegular} 0 R /F2 ${fontBold} 0 R >> >> /Contents ${stream} 0 R >>`))});
+  objects[pagesObject]=`<< /Type /Pages /Count ${pageObjects.length} /Kids [${pageObjects.map(id=>`${id} 0 R`).join(" ")}] >>`;
+  const catalog=addObject(`<< /Type /Catalog /Pages ${pagesObject} 0 R >>`);
+  let pdf="%PDF-1.4\n",offsets=[0];
+  for(let i=1;i<objects.length;i++){offsets[i]=pdf.length;pdf+=`${i} 0 obj\n${objects[i]}\nendobj\n`}
+  const xref=pdf.length;pdf+=`xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+  for(let i=1;i<objects.length;i++)pdf+=`${String(offsets[i]).padStart(10,"0")} 00000 n \n`;
+  pdf+=`trailer\n<< /Size ${objects.length} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const blob=new Blob([pdf],{type:"application/pdf"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download=`${String(article.id||article.title).replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase()||"article"}.pdf`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 

@@ -5,6 +5,35 @@ async function loadArticles(){try{articles=await fetch("../articles.json").then(
 function renderArticles(){const q=$("#as").value.toLowerCase();$("#alist").innerHTML=articles.filter(a=>(a.title+" "+a.category+" "+a.subject).toLowerCase().includes(q)).map(a=>"<div><strong>"+esc(a.title)+"</strong><br><small>"+esc(a.date)+" · "+esc(a.category)+"</small></div>").join("")}
 async function loadClients(){const c=cfg();$("#cstatus").textContent="Loading client database…";try{const r=await fetch(c.supabaseUrl+"/rest/v1/resource_access?select=*&order=submitted_at.desc",{headers:{apikey:c.supabaseAnonKey,Authorization:"Bearer "+session.access_token}});if(!r.ok)throw new Error();clients=await r.json();$("#cc").textContent=clients.length;$("#cstatus").textContent="";renderClients()}catch{$("#cstatus").textContent="Client access requires the one-time administrator account and database policy setup."}}
 function renderClients(){const q=$("#cs").value.toLowerCase();$("#crows").innerHTML=clients.filter(x=>((x.visitor_name||"")+" "+(x.email||"")+" "+(x.resource_title||"")).toLowerCase().includes(q)).map(x=>"<tr><td>"+esc(x.visitor_name)+"</td><td>"+esc(x.email)+"</td><td>"+esc(x.resource_title)+"</td><td>"+esc(x.provider)+"</td><td>"+esc((x.submitted_at||"").slice(0,10))+"</td></tr>").join("")}
+
+async function extractArticleFile(file){
+ const status=$("#file-status"); if(!file)return;
+ status.textContent="Reading and standardizing article…";
+ try{
+  const ext=(file.name.split(".").pop()||"").toLowerCase(); let text="";
+  if(ext==="txt") text=await file.text();
+  else if(ext==="docx"){
+   if(!window.mammoth) throw new Error("Word document reader is still loading. Please try again.");
+   const result=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()}); text=result.value;
+  } else if(ext==="pdf"){
+   const pdfjs=await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs");
+   pdfjs.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+   const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise, pages=[];
+   for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n),content=await page.getTextContent();pages.push(content.items.map(x=>x.str).join(" "))}
+   text=pages.join("\n\n");
+  } else throw new Error("Please upload a DOCX, PDF or TXT file.");
+  text=standardizeArticleText(text);
+  if(!text)throw new Error("No readable text was found in this file.");
+  $("#article-content").value=text;
+  if(!$("#article-title").value.trim()){const first=text.split(/\n+/).find(x=>x.trim());if(first&&first.length<180){$("#article-title").value=first.trim();$("#article-content").value=text.slice(text.indexOf(first)+first.length).trim()}}
+  status.textContent="Article extracted and standardized. Review the text, metadata and preview before publishing.";
+  previewArticle();
+ }catch(e){status.textContent=e.message||"The article could not be read."}
+}
+function standardizeArticleText(text){
+ return String(text||"").replace(/\r/g,"").replace(/[\t ]+/g," ").replace(/ *\n */g,"\n").replace(/\n{3,}/g,"\n\n").split("\n").map(x=>x.trim()).join("\n").trim();
+}
+
 function openArticleEditor(){document.querySelector("#article-editor").classList.remove("hidden");document.querySelector("#article-title").focus();document.querySelector("#article-status").textContent=""}
 function closeArticleEditor(){document.querySelector("#article-editor").classList.add("hidden");document.querySelector("#article-preview").classList.add("hidden")}
 function articleData(){return{title:document.querySelector("#article-title").value.trim(),date:document.querySelector("#article-date").value,category:document.querySelector("#article-category").value.trim(),subject:document.querySelector("#article-subject").value.trim(),content:document.querySelector("#article-content").value.trim()}}
@@ -38,4 +67,4 @@ function renderMedia(){const el=$("#media-list");if(!el)return;const media=[{tit
 function dashboard(){ $("#login").classList.add("hidden");$("#dash").classList.remove("hidden");loadArticles();loadClients();renderBooks();renderMedia()}
 function panel(id){$$(".panel").forEach(x=>x.classList.add("hidden"));$("#"+id).classList.remove("hidden")}
 function exportCsv(){if(!clients.length)return;const cols=["visitor_name","email","resource_title","provider","privacy_consent","marketing_consent","submitted_at"],q=v=>'"'+String(v??"").replaceAll('"','""')+'"',csv=[cols.join(","),...clients.map(r=>cols.map(c=>q(r[c])).join(","))].join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="johnughulu-clients.csv";a.click()}
-document.addEventListener("DOMContentLoaded",()=>{$("#show-password").onchange=e=>{$("#password").type=e.target.checked?"text":"password"};$("#login-form").addEventListener("submit",async e=>{e.preventDefault();$("#status").textContent="Signing in…";try{session=await signin($("#email").value,$("#password").value);sessionStorage.setItem("ju_session",JSON.stringify(session));dashboard()}catch(err){$("#status").textContent=err.message}});try{session=JSON.parse(sessionStorage.getItem("ju_session"));if(session?.access_token)dashboard()}catch{}$$("nav [data-p]").forEach(b=>b.onclick=()=>panel(b.dataset.p));$("#logout").onclick=()=>{sessionStorage.removeItem("ju_session");location.reload()};$("#as").oninput=renderArticles;$("#cs").oninput=renderClients;$("#export").onclick=exportCsv;$("#new-article").onclick=openArticleEditor;$("#close-editor").onclick=closeArticleEditor;$("#preview-article").onclick=previewArticle;$("#save-article-draft").onclick=saveArticleDraft;$("#publish-article").onclick=publishArticle;restoreArticleDraft();$("#new-book").onclick=openBookEditor;$("#close-book-editor").onclick=closeBookEditor;$("#preview-book").onclick=previewBook;$("#save-book-draft").onclick=saveBookDraft;$("#publish-book").onclick=publishBook;restoreBookDraft()});
+document.addEventListener("DOMContentLoaded",()=>{$("#show-password").onchange=e=>{$("#password").type=e.target.checked?"text":"password"};$("#login-form").addEventListener("submit",async e=>{e.preventDefault();$("#status").textContent="Signing in…";try{session=await signin($("#email").value,$("#password").value);sessionStorage.setItem("ju_session",JSON.stringify(session));dashboard()}catch(err){$("#status").textContent=err.message}});try{session=JSON.parse(sessionStorage.getItem("ju_session"));if(session?.access_token)dashboard()}catch{}$$("nav [data-p]").forEach(b=>b.onclick=()=>panel(b.dataset.p));$("#logout").onclick=()=>{sessionStorage.removeItem("ju_session");location.reload()};$("#as").oninput=renderArticles;$("#cs").oninput=renderClients;$("#export").onclick=exportCsv;$("#new-article").onclick=openArticleEditor;$("#close-editor").onclick=closeArticleEditor;$("#preview-article").onclick=previewArticle;$("#save-article-draft").onclick=saveArticleDraft;$("#publish-article").onclick=publishArticle;$("#article-file").onchange=e=>extractArticleFile(e.target.files[0]);restoreArticleDraft();$("#new-book").onclick=openBookEditor;$("#close-book-editor").onclick=closeBookEditor;$("#preview-book").onclick=previewBook;$("#save-book-draft").onclick=saveBookDraft;$("#publish-book").onclick=publishBook;restoreBookDraft()});

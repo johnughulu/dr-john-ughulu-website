@@ -14,6 +14,8 @@ const books = [
 ];
 
 const papers = [
+  {id:"africa-did-not-get-bigger",title:"Africa Did Not Get Bigger: A Leadership Lesson on Perception, Potential, and Perspective",year:"2026",category:"Leadership",subject:"Perception, Potential and Perspective",keywords:"Africa leadership perception potential perspective",url:"https://www.researchgate.net/publication/414719853_Africa_Did_Not_Get_Bigger_A_Leadership_Lesson_on_Perception_Potential_and_Perspective"},
+  {id:"hidden-architects-global-progress-peer-reviewed",title:"Hidden Architects of Global Progress: Black Innovation, Historical Consciousness and Leadership",year:"2026",category:"Leadership",subject:"Black Innovation and Historical Consciousness",keywords:"Black innovation historical consciousness leadership global progress",url:"https://www.researchgate.net/publication/414719473_Hidden_Architects_of_Global_Progress_Black_Innovation_Historical_Consciousness_and_Leadership"},
   ["ai-african-leaders","Artificial Intelligence: The Priority of African Leaders with Nigeria as a Case Study","2025","Artificial Intelligence","Governance","AI Africa Nigeria leadership technology"],
   ["leadership-mindset","Leadership Mindset: Why An Organization Cannot Grow Beyond the Mindset of Its Leader","2025","Leadership","Organizational Growth","mindset leader organization culture growth"],
   ["socrates-democracy","How to Avoid Socrates's Critiques: Addressing Vulnerabilities in Democratic Systems Through Wisdom, Knowledge, and Moral Integrity","2025","Governance","Democracy","Socrates democracy wisdom integrity governance"],
@@ -27,7 +29,7 @@ const papers = [
   ["globalization-strategy","Business Strategies That Align With Globalization Process","2023","Business Strategy","Globalization","business globalization strategy international"],
   ["wealth-creation","Direct-Entry PhD Capstone Project: Entrepreneurship as a Major Driver of Wealth Creation","2022","Entrepreneurship","Wealth Creation","entrepreneurship wealth jobs innovation capstone"],
   ["ai-business-preprint","The Role of Artificial Intelligence (AI) in Starting, Automating and Scaling Businesses for Entrepreneurs (Preprint)","2022","Artificial Intelligence","Entrepreneurship","AI automation scaling entrepreneurs preprint"]
-].map(([id,title,year,category,subject,keywords])=>({id,title,year,category,subject,keywords}));
+].map(p=>Array.isArray(p)?{id:p[0],title:p[1],year:p[2],category:p[3],subject:p[4],keywords:p[5]}:p);
 
 const nav = [
   ["home","Home"],["about","About"],["books","Books"],["articles","Articles & Papers"],["speaking","Speaking & Leadership"],["ministry","Ministry"],["organizations","Organizations & Media"],["contact","Contact"]

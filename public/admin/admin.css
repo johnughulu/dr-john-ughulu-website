@@ -14,3 +14,16 @@
 .page-actions{display:flex;gap:.5rem;flex-wrap:wrap}.page-actions .btn{white-space:nowrap}
 
 .paper-list{display:grid;gap:.75rem;margin-top:1rem}.paper-card{background:#fff;border:1px solid #dce3e7;border-radius:14px;padding:1rem}.paper-card p{margin:.35rem 0}.paper-card small{color:#69757c}
+
+/* Accessibility remediation */
+.admin a:focus-visible,.admin button:focus-visible,.admin input:focus-visible,.admin textarea:focus-visible,.admin select:focus-visible{outline:3px solid #8a5a00;outline-offset:3px}
+.admin nav button,.icon-close,.upload-card,.admin .btn{min-width:44px;min-height:44px}
+.admin input,.admin textarea,.admin select{min-height:44px}
+.admin nav button[aria-current="page"]{background:#b99335;color:#071b2b;font-weight:800}
+.search-label{display:block;font-weight:700;margin:.75rem 0 .35rem}
+.table{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.admin table{min-width:720px}
+.admin th{font-weight:800}
+.admin [role="status"]{min-height:1.5rem}
+@media(max-width:700px){.admin{padding:1rem}.admin header{align-items:flex-start;gap:1rem;flex-direction:column}.admin nav button{min-height:48px}.editor-actions .btn{min-height:48px}}
+@media(prefers-reduced-motion:reduce){.admin *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}

@@ -8,7 +8,7 @@ await mkdir(out, { recursive: true });
 await cp(path.join(root, "public"), out, { recursive: true });
 
 const template = await readFile(path.join(root, "src", "template.html"), "utf8");
-const pages = ["home", "about", "books", "articles", "speaking", "ministry", "organizations", "contact", "privacy"];
+const pages = ["home", "about", "books", "articles", "speaking", "ministry", "organizations", "contact", "privacy", "accessibility"];
 
 for (const page of pages) {
   const depth = page === "home" ? "" : "../";

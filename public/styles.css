@@ -8,3 +8,19 @@
 @media(max-width:1000px){.nav{display:none;position:absolute;left:0;right:0;top:82px;background:#fff;padding:1rem;border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch}.nav.open{display:flex}.menu-btn{display:block}.hero-grid,.bio-layout{grid-template-columns:1fr}.portrait-shell{width:min(520px,100%);margin:auto}.grid-3,.library-grid{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}.footer-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.hero-grid{padding:4rem 0;min-height:auto}.hero h1{font-size:3.25rem}.page-hero h1{font-size:clamp(2rem,10vw,3rem);line-height:1.08;max-width:100%;overflow-wrap:anywhere;word-break:normal}.page-hero p{font-size:1rem;line-height:1.55}.page-hero{overflow:hidden}.stats{grid-template-columns:1fr 1fr}.grid-3,.grid-2,.library-grid,.footer-grid{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.section{padding:4rem 0}.page-hero{padding:4rem 0 3.5rem}.cta-flex{align-items:flex-start;flex-direction:column}.nav-wrap{height:72px}.nav{top:72px}.brand strong{font-size:1.1rem}.modal{padding:1.25rem}.modal-actions{flex-direction:column}.modal-actions .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+
+/* Accessibility remediation: WCAG 2.2 AA engineering target */
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #8a5a00;outline-offset:3px}
+.skip-link{font-weight:700;border:2px solid var(--navy);border-radius:8px}
+.nav a,.footer a{min-height:44px;display:flex;align-items:center}
+.menu-btn,.collection-tab{min-width:44px;min-height:44px}
+.filters input,.filters select,.field input,.field textarea{min-height:44px}
+.check input{width:20px;height:20px;flex:0 0 auto}
+.form-status[role="status"],[role="alert"]{padding:.25rem 0}
+.modal-backdrop{overscroll-behavior:contain}
+.modal{outline:none}
+.modal-close{float:right;min-width:44px;min-height:44px}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.accessibility-contact{border-left:4px solid var(--gold);padding:1rem 1.25rem;background:var(--cream)}
+@media(forced-colors:active){.btn,.collection-tab,.menu-btn{border:1px solid ButtonText}.skip-link{border:2px solid LinkText}}
+@media(max-width:650px){.nav a{min-height:48px}.filters input,.filters select,.btn,.menu-btn,.collection-tab{min-height:48px}}

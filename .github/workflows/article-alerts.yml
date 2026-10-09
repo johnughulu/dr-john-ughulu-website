@@ -1,0 +1,33 @@
+name: New article subscriber alerts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - public/articles.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: article-subscriber-alerts
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Detect and notify for newly published articles
+        env:
+          ARTICLE_ALERT_ENDPOINT: ${{ secrets.ARTICLE_ALERT_ENDPOINT }}
+          ARTICLE_ALERT_SECRET: ${{ secrets.ARTICLE_ALERT_SECRET }}
+          BEFORE_SHA: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/notify-new-articles.mjs

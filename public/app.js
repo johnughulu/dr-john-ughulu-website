@@ -72,7 +72,7 @@ function resourceCard(item,provider){
   const meta=`<div class="resource-meta"><span class="tag">${escapeHtml(item.category)}</span><span class="tag">${escapeHtml(item.subject)}</span>${item.year?`<span class="tag">${item.year}</span>`:""}</div>`;
   if(provider==="Article"){
     const published=item.date?new Date(`${item.date}T12:00:00`).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}):"";
-    return `<article class="card resource-card article-card">${meta}${published?`<p class="article-date">Published ${escapeHtml(published)}</p>`:""}<h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.excerpt||"Read this original article by Dr. John Ughulu.")}</p><a class="btn btn-dark" href="${href("articles")}?article=${encodeURIComponent(item.id)}">Read Article</a></article>`;
+    return `<article class="card resource-card article-card">${meta}${published?`<p class="article-date">Published ${escapeHtml(published)}</p>`:""}<h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.excerpt||"Read this original article by Dr. John Ughulu.")}</p><a class="btn btn-dark" href="${href("articles")}${encodeURIComponent(item.id)}/">Read Article</a></article>`;
   }
   const description=provider==="Amazon"?"Available for purchase through Amazon. All proceeds support the work and mission of The Morale Booster Ministries.":"Peer-reviewed research and scholarly work. Continue to the ResearchGate profile to view availability.";
   return `<article class="card resource-card">${cover}${meta}<h3>${escapeHtml(item.title)}</h3><p>${description}</p><button class="btn btn-dark" data-resource="${data}">Continue to ${provider}</button></article>`;
@@ -83,7 +83,7 @@ async function setupArticlesPage(){
     const response=await fetch(`${base}articles.json`);
     if(!response.ok)throw new Error("Articles could not be loaded");
     const articles=(await response.json()).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
-    const articleId=new URLSearchParams(window.location.search).get("article");
+    const articleId=window.ARTICLE_ID || new URLSearchParams(window.location.search).get("article");
     if(articleId){
       const article=articles.find(item=>item.id===articleId);
       if(!article){document.getElementById("main").innerHTML=`${hero("Article not found","This article is unavailable","Return to the article library to continue browsing.")}<section class="section"><div class="container"><a class="btn btn-dark" href="${href("articles")}">Back to Articles</a></div></section>`;return}

@@ -51,11 +51,11 @@ for (const article of articles) {
   const page = template
     .replaceAll("{{BASE}}", "../../")
     .replaceAll("{{PAGE}}", "articles")
-    .replace(/<title>[^<]*<\\/title>/, "")
+    .replace(/<title>[^<]*<\/title>/, "")
     .replace(/<meta name="description"[^>]*>/, "")
     .replace(/<meta property="og:[^>]*>/g, "")
     .replace(/<meta name="twitter:[^>]*>/g, "")
-    .replace("</head>", articleMeta(article) + "\\n</head>")
+    .replace("</head>", articleMeta(article) + "\n</head>")
     .replace('window.PAGE_ID = "articles";', 'window.PAGE_ID = "articles"; window.ARTICLE_ID = ' + JSON.stringify(article.id) + ';');
   await writeFile(path.join(directory, "index.html"), page);
 }

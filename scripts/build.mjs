@@ -30,7 +30,7 @@ const articleMeta = article => {
 <meta name="twitter:image" content="https://johnughulu.com/assets/dr-john-ughulu-headshot.png">`;
 };
 
-const pages = ["home", "about", "books", "articles", "speaking", "ministry", "organizations", "contact", "privacy", "accessibility"];
+const pages = ["home", "about", "books", "articles", "speaking", "speaker-intake", "ministry", "organizations", "contact", "privacy", "accessibility"];
 
 for (const page of pages) {
   const depth = page === "home" ? "" : "../";

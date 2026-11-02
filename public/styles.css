@@ -49,3 +49,11 @@
 .article-byline strong{color:var(--navy)}
 .article-byline time{font-variant-numeric:tabular-nums}
 @media(max-width:650px){.article-byline{font-size:.9rem;gap:.35rem}}
+
+/* Search-indexable, visible leadership quotation on homepage */
+.leadership-quote-section{background:var(--cream);padding:3.4rem 0;border-bottom:1px solid var(--line)}
+.leadership-home-quote{max-width:980px;margin:0 auto;text-align:center;border:0;padding:0}
+.leadership-home-quote p{font:700 clamp(1.65rem,3.5vw,2.75rem)/1.35 "Playfair Display",serif;color:var(--navy);margin:0 0 1.15rem}
+.leadership-home-quote footer{font:700 1rem/1.5 "DM Sans",sans-serif;color:#78551f}
+.leadership-home-quote cite{font-style:normal}
+@media(max-width:650px){.leadership-quote-section{padding:2.6rem 0}}
